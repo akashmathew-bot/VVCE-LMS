@@ -1,0 +1,10 @@
+{
+  "description": "Enables users to easily customize and update website layouts for a tailored online presence, enhancing user engagement and visual appeal.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
