@@ -63,6 +63,12 @@ export function Assignments() {
     return a.status === filter;
   });
 
+  const priorityColors: Record<string, string> = {
+    High: "bg-red-100 text-red-700 border-red-200",
+    Medium: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    Low: "bg-green-100 text-green-700 border-green-200",
+  };
+
   const pendingCount = assignments.filter((a) => a.status === "pending").length;
   const submittedCount = assignments.filter(
     (a) => a.status === "submitted"
@@ -130,7 +136,7 @@ export function Assignments() {
                 <h3 className="text-xl font-bold text-black flex-1">
                   {assignment.title}
                 </h3>
-                <span className="px-3 py-1 rounded text-xs border border-gray-300 text-gray-700">
+                <span className={`px-3 py-1 rounded text-xs border ${priorityColors[assignment.priority] || "border-gray-300 text-gray-700"}`}>
                   {assignment.priority}
                 </span>
               </div>

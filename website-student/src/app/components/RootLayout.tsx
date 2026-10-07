@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Home,
@@ -16,10 +17,7 @@ import {
   LogOut,
   User,
   BellRing,
-  CircleUserRound,
 } from "lucide-react";
-
-const UNREAD_COUNT = 4;
 
 const navItems = [
   { icon: Home, label: "Dashboard", path: "/" },
@@ -31,15 +29,64 @@ const navItems = [
   { icon: Bus, label: "Bus Schedules", path: "/bus-schedules" },
   { icon: ClipboardList, label: "Survey", path: "/survey" },
   { icon: HelpCircle, label: "Help", path: "/help" },
-  { icon: CircleUserRound, label: "Profile", path: "/profile" },
 ];
 
 export function RootLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [session, setSession] = useState<any>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
 
-  const handleLogout = () => navigate("/login");
+  useEffect(() => {
+    let mounted = true;
+
+    const loadSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!mounted) return;
+
+      setSession(session);
+      setIsAuthLoading(false);
+
+      if (!session) {
+        navigate("/login", { replace: true });
+      }
+    };
+
+    loadSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!mounted) return;
+
+      setSession(nextSession);
+
+      if (!nextSession) {
+        navigate("/login", { replace: true });
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  const userEmail = session?.user?.email || "";
+  const userUSN = userEmail.endsWith("@vvce.ac.in")
+    ? userEmail.split("@")[0].toUpperCase()
+    : "N/A";
+  const userName =
+    session?.user?.user_metadata?.name || "Student Profile";
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/login", { replace: true });
+  };
 
   const NotifButton = ({ size = 20 }: { size?: number }) => (
     <button
@@ -48,15 +95,23 @@ export function RootLayout() {
       aria-label="Notifications"
     >
       <BellRing size={size} strokeWidth={1.75} />
-      {UNREAD_COUNT > 0 && (
-        <span className="absolute top-1.5 right-1.5 w-[7px] h-[7px] bg-black rounded-full" />
-      )}
     </button>
   );
 
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-black border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
@@ -70,6 +125,7 @@ export function RootLayout() {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 text-black rounded hover:bg-gray-100 transition-colors"
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
             >
               {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -77,7 +133,6 @@ export function RootLayout() {
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
@@ -102,8 +157,8 @@ export function RootLayout() {
                       <User className="text-white" size={24} />
                     </div>
                     <div>
-                      <h3 className="text-black font-semibold">Aditya PS</h3>
-                      <p className="text-gray-500 text-sm">4VV22CS057</p>
+                      <h3 className="text-black font-semibold">{userName}</h3>
+                      <p className="text-gray-500 text-sm">{userUSN}</p>
                     </div>
                   </div>
                   <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500">
@@ -144,10 +199,8 @@ export function RootLayout() {
         )}
       </AnimatePresence>
 
-      {/* Desktop Sidebar */}
       <div className="hidden lg:block fixed top-0 left-0 bottom-0 w-64 bg-white border-r border-gray-200 overflow-y-auto">
         <div className="p-6">
-          {/* Logo row */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-black rounded flex items-center justify-center">
@@ -161,15 +214,14 @@ export function RootLayout() {
             <NotifButton size={19} />
           </div>
 
-          {/* Student card */}
           <div className="mb-8 p-4 bg-gray-50 rounded border border-gray-200">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
                 <User className="text-white" size={20} />
               </div>
               <div>
-                <h3 className="text-black font-semibold">Aditya PS</h3>
-                <p className="text-gray-500 text-sm">4VV22CS057</p>
+                <h3 className="text-black font-semibold">{userName}</h3>
+                <p className="text-gray-500 text-sm">{userUSN}</p>
               </div>
             </div>
           </div>
@@ -203,7 +255,6 @@ export function RootLayout() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="lg:ml-64 pt-16 lg:pt-0 min-h-screen">
         <Outlet />
       </div>

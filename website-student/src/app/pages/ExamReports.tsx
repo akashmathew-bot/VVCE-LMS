@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { useState } from "react";
-import { Download } from "lucide-react";
+import { Download, CreditCard } from "lucide-react";
 
 export function ExamReports() {
   const [selectedSemester, setSelectedSemester] = useState(5);
@@ -160,6 +160,10 @@ export function ExamReports() {
               <button className="bg-white hover:bg-gray-100 text-black font-semibold px-6 py-3 rounded transition-all flex items-center gap-2 border border-gray-200">
                 <Download size={20} />
                 Export as Excel
+              </button>
+              <button className="bg-black hover:bg-gray-800 text-white font-semibold px-6 py-3 rounded transition-all flex items-center gap-2 ml-auto">
+                <CreditCard size={20} />
+                Exam Fee Section
               </button>
             </div>
 

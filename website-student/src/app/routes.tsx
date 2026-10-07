@@ -11,7 +11,6 @@ import { BusSchedules } from "./pages/BusSchedules";
 import { Survey } from "./pages/Survey";
 import { Help } from "./pages/Help";
 import { Notifications } from "./pages/Notifications";
-import { Profile } from "./pages/Profile";
 
 export const router = createBrowserRouter([
   {
@@ -32,7 +31,6 @@ export const router = createBrowserRouter([
       { path: "survey", Component: Survey },
       { path: "help", Component: Help },
       { path: "notifications", Component: Notifications },
-      { path: "profile", Component: Profile },
     ],
   },
 ]);

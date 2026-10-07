@@ -73,8 +73,13 @@ export function Survey() {
       status: "completed",
     },
   ];
-
   const filteredSurveys = surveys.filter((s) => s.status === filter);
+
+  const priorityColors: Record<string, string> = {
+    High: "bg-red-100 text-red-700 border-red-200",
+    Medium: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    Low: "bg-green-100 text-green-700 border-green-200",
+  };
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-white">
@@ -123,7 +128,7 @@ export function Survey() {
             >
               <div className="flex items-start justify-between mb-3">
                 <ClipboardList className="text-black" size={24} />
-                <span className="px-3 py-1 rounded text-xs border border-gray-300 text-gray-700">
+                <span className={`px-3 py-1 rounded text-xs border ${priorityColors[survey.priority] || "border-gray-300 text-gray-700"}`}>
                   {survey.priority}
                 </span>
               </div>

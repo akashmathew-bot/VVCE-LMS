@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "motion/react";
 import { Mail, Lock, LogIn } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export function Login() {
   const navigate = useNavigate();
@@ -14,16 +15,32 @@ export function Login() {
     e.preventDefault();
     setError("");
 
-    if (!email.endsWith("@vvce.ac.in")) {
-      setError("Please use your VVCE email address");
+    let formattedEmail = email.trim().toLowerCase();
+
+    if (!formattedEmail.includes("@")) {
+      formattedEmail = `${formattedEmail}@vvce.ac.in`;
+    }
+
+    if (!formattedEmail.endsWith("@vvce.ac.in")) {
+      setError("Please use your VVCE email address or USN.");
       return;
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate("/");
-    }, 1000);
+
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email: formattedEmail,
+      password,
+    });
+
+    setIsLoading(false);
+
+    if (authError) {
+      setError("Invalid USN/email or password.");
+      return;
+    }
+
+    navigate("/");
   };
 
   return (
@@ -54,7 +71,7 @@ export function Login() {
               </label>
               <div className="relative">
                 <Mail
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
                   size={20}
                 />
                 <input
@@ -62,7 +79,8 @@ export function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your.email@vvce.ac.in"
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-12 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-secondary"
+                  className="w-full bg-white border border-gray-200 rounded-xl px-12 py-3 text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-secondary"
+                  autoComplete="username"
                   required
                 />
               </div>
@@ -74,7 +92,7 @@ export function Login() {
               </label>
               <div className="relative">
                 <Lock
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
                   size={20}
                 />
                 <input
@@ -82,7 +100,8 @@ export function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-12 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-secondary"
+                  className="w-full bg-white border border-gray-200 rounded-xl px-12 py-3 text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-secondary"
+                  autoComplete="current-password"
                   required
                 />
               </div>
@@ -93,6 +112,7 @@ export function Login() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 text-red-300 text-sm"
+                role="alert"
               >
                 {error}
               </motion.div>
@@ -112,16 +132,11 @@ export function Login() {
                 </>
               )}
             </button>
-
-            <div className="text-center">
-              <a
-                href="#"
-                className="text-secondary hover:text-secondary/80 text-sm transition-colors"
-              >
-                Forgot Password?
-              </a>
-            </div>
           </form>
+
+          <p className="text-white/50 text-center mt-6 text-xs">
+            Accounts are provided by VVCE. Self-registration is not available.
+          </p>
         </div>
 
         <p className="text-white/40 text-center mt-6 text-sm">
